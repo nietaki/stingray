@@ -39,9 +39,13 @@ jobs:
         run: sudo apt-get install -y gcc-mingw-w64-x86-64
         shell: bash
         if: ${{ startsWith(matrix.runner, 'ubuntu') && matrix.target == 'win' }}
+      - name: Set APP_VERSION
+        run: |
+          app_version=$(cat APP_VERSION.txt)
+          echo "APP_VERSION=${app_version}" >> $GITHUB_ENV
       - name: set executable name
         run: |
-          exec_name=stingray-${{ matrix.target }}-${{matrix.arch}}.${{matrix.extension}}
+          exec_name=stingray-v${{env.APP_VERSION}}-${{ matrix.target }}-${{matrix.arch}}.${{matrix.extension}}
           echo "EXEC_NAME=${exec_name}" >> $GITHUB_ENV
 
       - name: check executable name
@@ -69,7 +73,7 @@ jobs:
           CC: x86_64-w64-mingw32-gcc
           GOOS: windows
           GOARCH: amd64
-        if: ${{ matrix.target != 'win' }}
+        if: ${{ matrix.target == 'win' }}
       - name: run checks
         run: make check
         if: ${{ matrix.target != 'win' }}
