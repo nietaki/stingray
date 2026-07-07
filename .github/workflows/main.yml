@@ -64,6 +64,9 @@ jobs:
       - name: Build
         run: go build -v -o "${{ env.EXEC_NAME }}"
         if: ${{ matrix.target != 'win' }}
+      - name: run checks
+        run: make check
+        if: ${{ matrix.target != 'win' }}
 
       # CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags "-s -w"
       - name: Build windows executable
@@ -74,16 +77,13 @@ jobs:
           GOOS: windows
           GOARCH: amd64
         if: ${{ matrix.target == 'win' }}
-      - name: run checks
-        run: make check
-        if: ${{ matrix.target != 'win' }}
+
       - name: archive the executable
         run: tar -cvf ${{env.EXEC_NAME}}.tar ${{ env.EXEC_NAME }}
 
       - name: see what we have in working dir
-        run: tree
+        run: ls -alh
         shell: bash
-        if: ${{ matrix.os ==  'linux' }}
 
       - name: Upload archived executable
         uses: actions/upload-artifact@v7
