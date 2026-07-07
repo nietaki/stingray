@@ -28,6 +28,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev tree
         shell: bash
         if: ${{ matrix.os == 'linux' }}
+      - name: set executable name
+        run: |
+          exec_name=stingray-${{ matrix.os }}-${{matrix.arch}}
+          echo "EXEC_NAME=${exec_name}" >> $GITHUB_ENV
+
+      - name: check executable name
+        run: echo "${{env.EXEC_NAME}}"
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -37,10 +44,10 @@ jobs:
         run: go get .
       - name: install tool deps
         run: make install
-      - name: Build
-        run: go build -v
       - name: run tests
         run: make test
+      - name: Build
+        run: go build -v -o "${{ env.EXEC_NAME }}"
       - name: run checks
         run: make check
       - name: see what we have in working dir
@@ -50,8 +57,8 @@ jobs:
       - name: Upload executable
         uses: actions/upload-artifact@v7
         with:
-          name: stingray-${{ matrix.os }}-${{ matrix.arch }}
-          path: ${{github.workspace}}/stingray
+          name: ${{ env.EXEC_NAME }}
+          path: ${{github.workspace}}/${{ env.EXEC_NAME }}
           if-no-files-found: error
           archive: false
 
