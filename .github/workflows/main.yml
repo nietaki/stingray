@@ -35,7 +35,7 @@ jobs:
       - name: install tool deps
         run: make install
       - name: Build
-        run: go build -v ./...
+        run: go build -v
       - name: run tests
         run: make test
       - name: run checks
