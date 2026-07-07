@@ -15,12 +15,20 @@ jobs:
         - os: linux
           arch: amd64
           runner: ubuntu-24.04
+          extension: 'bin'
+        # - os: win
+        #   arch: amd64
+        #   runner: ubuntu-24.04
+        #   extension: 'exe'
         - os: linux
           arch: arm64
           runner: ubuntu-24.04-arm
+          extension: 'bin'
         - os: macos
           arch: arm64
           runner: macos-26
+          extension: 'app'
+
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
@@ -30,7 +38,7 @@ jobs:
         if: ${{ matrix.os == 'linux' }}
       - name: set executable name
         run: |
-          exec_name=stingray-${{ matrix.os }}-${{matrix.arch}}
+          exec_name=stingray-${{ matrix.os }}-${{matrix.arch}}.${{matrix.extension}}
           echo "EXEC_NAME=${exec_name}" >> $GITHUB_ENV
 
       - name: check executable name
@@ -60,7 +68,6 @@ jobs:
           name: ${{ env.EXEC_NAME }}
           path: ${{github.workspace}}/${{ env.EXEC_NAME }}
           if-no-files-found: error
-          archive: false
 
   # build:
   #   needs:
