@@ -23,7 +23,7 @@ jobs:
           arch: arm64
           runner: ubuntu-24.04-arm
           extension: 'bin'
-        - target: macos
+        - target: darwin
           arch: arm64
           runner: macos-26
           extension: 'app'
@@ -78,17 +78,14 @@ jobs:
           GOARCH: amd64
         if: ${{ matrix.target == 'win' }}
 
-      - name: archive the executable
-        run: tar -cvf ${{env.EXEC_NAME}}.tar ${{ env.EXEC_NAME }}
-
       - name: see what we have in working dir
         run: ls -alh
         shell: bash
 
-      - name: Upload archived executable
+      - name: Upload the executable
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.EXEC_NAME }}.tar
-          path: ${{github.workspace}}/${{ env.EXEC_NAME }}.tar
+          name: ${{ env.EXEC_NAME }}
+          path: ${{github.workspace}}/${{ env.EXEC_NAME }}
           if-no-files-found: error
           archive: false
