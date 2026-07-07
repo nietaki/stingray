@@ -1,8 +1,12 @@
 package main
 
 import (
+	_ "embed"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+//go:embed assets/shaders/raymarching.fs
+var raymarchingShaderText string
 
 func main() {
 	screenWidth := int32(1280)
@@ -18,7 +22,8 @@ func main() {
 	camera.Up = rl.NewVector3(0.0, 1.0, 0.0)
 	camera.Fovy = 65.0
 
-	shader := rl.LoadShader("", "raymarching.fs")
+	// shader := rl.LoadShader("", "raymarching.fs")
+	shader := rl.LoadShaderFromMemory("", raymarchingShaderText)
 
 	viewEyeLoc := rl.GetShaderLocation(shader, "viewEye")
 	viewCenterLoc := rl.GetShaderLocation(shader, "viewCenter")
