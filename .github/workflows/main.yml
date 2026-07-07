@@ -1,0 +1,75 @@
+# https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
+name: main
+
+on: [push]
+
+env:
+  FOO: bar
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: install required packages (the naive way)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+        shell: bash
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.11'
+      - name: Install dependencies
+        run: go get .
+      - name: install tool deps
+        run: make install
+      - name: Build
+        run: go build -v ./...
+      - name: run tests
+        run: make test
+      - name: run checks
+        run: make check
+
+  # build:
+  #   needs:
+  #     - test
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #       - platform: linux/amd64
+  #         runner: ubuntu-24.04
+  #       - platform: linux/arm64
+  #         runner: ubuntu-24.04-arm
+  #   runs-on: ${{ matrix.runner }}
+  #   steps:
+  #     - name: Prepare
+  #       run: |
+  #         platform=${{ matrix.platform }}
+  #         echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+  #     - name: Upload digest
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: digests-${{ env.PLATFORM_PAIR }}
+  #         path: ${{ runner.temp }}/digests/*
+  #         if-no-files-found: error
+  #         retention-days: 1
+
+
+  # update-description:
+  #   runs-on: ubuntu-24.04
+  #   needs: merge
+  #   if: github.ref == 'refs/heads/master'
+  #   steps:
+  #     - name: Check out code
+  #       uses: actions/checkout@v4
+  #     - name: Upload README.md as DockerHub description
+  #       uses: peter-evans/dockerhub-description@v5
+  #       with:
+  #         short-description: ${{ github.event.repository.description }}
+  #         username: ${{ vars.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #         repository: nietaki/lossifier
+  #         readme-filepath: ./README.md
+
