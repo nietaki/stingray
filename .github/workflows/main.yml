@@ -1,4 +1,3 @@
-# https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
 name: main
 
 on: [push]
@@ -12,19 +11,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: linux
+        - target: linux
           arch: amd64
           runner: ubuntu-24.04
           extension: 'bin'
-        # - os: win
-        #   arch: amd64
-        #   runner: ubuntu-24.04
-        #   extension: 'exe'
-        - os: linux
+        - target: win
+          arch: amd64
+          runner: ubuntu-24.04
+          extension: 'exe'
+        - target: linux
           arch: arm64
           runner: ubuntu-24.04-arm
           extension: 'bin'
-        - os: macos
+        - target: macos
           arch: arm64
           runner: macos-26
           extension: 'app'
@@ -32,13 +31,17 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
-      - name: install required packages (the naive way)
+      - name: install required packages
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev tree
         shell: bash
-        if: ${{ matrix.os == 'linux' }}
+        if: ${{ startsWith(matrix.runner, 'ubuntu') }}
+      - name: install cross-compilation packages
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
+        shell: bash
+        if: ${{ startsWith(matrix.runner, 'ubuntu') && matrix.target == 'win' }}
       - name: set executable name
         run: |
-          exec_name=stingray-${{ matrix.os }}-${{matrix.arch}}.${{matrix.extension}}
+          exec_name=stingray-${{ matrix.target }}-${{matrix.arch}}.${{matrix.extension}}
           echo "EXEC_NAME=${exec_name}" >> $GITHUB_ENV
 
       - name: check executable name
@@ -56,59 +59,32 @@ jobs:
         run: make test
       - name: Build
         run: go build -v -o "${{ env.EXEC_NAME }}"
+        if: ${{ matrix.target != 'win' }}
+
+      # CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags "-s -w"
+      - name: Build windows executable
+        run: go build -v -ldflags "-s -w" -o "${{ env.EXEC_NAME }}"
+        env:
+          CGO_ENABLED: 1
+          CC: x86_64-w64-mingw32-gcc
+          GOOS: windows
+          GOARCH: amd64
+        if: ${{ matrix.target != 'win' }}
       - name: run checks
         run: make check
+        if: ${{ matrix.target != 'win' }}
+      - name: archive the executable
+        run: tar -cvf ${{env.EXEC_NAME}}.tar ${{ env.EXEC_NAME }}
+
       - name: see what we have in working dir
         run: tree
         shell: bash
         if: ${{ matrix.os ==  'linux' }}
-      - name: Upload executable
+
+      - name: Upload archived executable
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.EXEC_NAME }}
-          path: ${{github.workspace}}/${{ env.EXEC_NAME }}
+          name: ${{ env.EXEC_NAME }}.tar
+          path: ${{github.workspace}}/${{ env.EXEC_NAME }}.tar
           if-no-files-found: error
-
-  # build:
-  #   needs:
-  #     - test
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #       - platform: linux/amd64
-  #         runner: ubuntu-24.04
-  #       - platform: linux/arm64
-  #         runner: ubuntu-24.04-arm
-  #   runs-on: ${{ matrix.runner }}
-  #   steps:
-  #     - name: Prepare
-  #       run: |
-  #         platform=${{ matrix.platform }}
-  #         echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-
-  #     - name: Upload digest
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: digests-${{ env.PLATFORM_PAIR }}
-  #         path: ${{ runner.temp }}/digests/*
-  #         if-no-files-found: error
-  #         retention-days: 1
-
-
-  # update-description:
-  #   runs-on: ubuntu-24.04
-  #   needs: merge
-  #   if: github.ref == 'refs/heads/master'
-  #   steps:
-  #     - name: Check out code
-  #       uses: actions/checkout@v4
-  #     - name: Upload README.md as DockerHub description
-  #       uses: peter-evans/dockerhub-description@v5
-  #       with:
-  #         short-description: ${{ github.event.repository.description }}
-  #         username: ${{ vars.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-  #         repository: nietaki/lossifier
-  #         readme-filepath: ./README.md
-
+          archive: false
