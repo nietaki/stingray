@@ -7,7 +7,7 @@ env:
   FOO: bar
 
 jobs:
-  main-linux:
+  main:
     strategy:
       fail-fast: false
       matrix:
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: install required packages (the naive way)
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev tree
         shell: bash
         if: ${{ startsWith(matrix.platform, 'linux') }}
 
@@ -40,11 +40,15 @@ jobs:
         run: make test
       - name: run checks
         run: make check
+      - name: see what we have in working dir
+        run: tree
+        shell: bash
+        if: ${{ startsWith(matrix.platform, 'linux') }}
       - name: Upload executable
         uses: actions/upload-artifact@v7
         with:
           name: stingray-${{ matrix.platform }}
-          path: stingray
+          path: ${{github.workspace}}/stingray
           if-no-files-found: error
 
   # build:
