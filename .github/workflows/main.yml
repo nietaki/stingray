@@ -7,13 +7,24 @@ env:
   FOO: bar
 
 jobs:
-  test:
-    runs-on: ubuntu-24.04
+  main-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - platform: linux_amd64
+          runner: ubuntu-24.04
+        - platform: linux_arm64
+          runner: ubuntu-24.04-arm
+        - platform: macos_arm64
+          runner: macos-26
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
       - name: install required packages (the naive way)
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev libwayland-dev libxkbcommon-dev
         shell: bash
+        if: ${{ startsWith(matrix.platform, 'linux') }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -29,6 +40,12 @@ jobs:
         run: make test
       - name: run checks
         run: make check
+      - name: Upload executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: stingray-${{ matrix.platform }}
+          path: stingray
+          if-no-files-found: error
 
   # build:
   #   needs:
