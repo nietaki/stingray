@@ -41,24 +41,32 @@ func main() {
 	// rl.GuiSetFont(font)
 
 	// panel := gui.NewPanel(rl.NewRectangle(screenWidth-panelWidth, 0, panelWidth, screenHeight))
-	layoutRoot := layout.Group("rootWrapper",
+	layoutRoot :=
 		layout.NewVStack("root",
-			layout.NewHFlex("",
-				layout.Label("paperSizeLabel"),
-				layout.Control("paperSize"),
+			layout.Group("paperGroup",
+				layout.NewVStack("paperStack",
+					layout.NewHFlex("",
+						layout.Label("paperSizeLabel"),
+						layout.Control("paperSize"),
+					),
+					layout.NewHFlex("",
+						layout.Label("paperOrientationLabel"),
+						layout.Control("paperOrientation"),
+					),
+					layout.NewHFlex("",
+						layout.Label("paperReset"),
+						layout.Label("paperApply"),
+					),
+				),
 			),
-			layout.NewHFlex("",
-				layout.Label("paperOrientationLabel"),
-				layout.Control("paperOrientation"),
-			),
-		))
+		)
 
 	widgetRectangles := make(map[string]rl.Rectangle)
 	var cb layout.WidgetCallback
 	cb = func(widget layout.Widget, bounds rl.Rectangle) {
 		widgetRectangles[widget.GetId()] = bounds
 	}
-	panelBounds := rl.NewRectangle(screenWidth-panelWidth, 0, panelWidth, screenHeight)
+	panelBounds := rl.NewRectangle(screenWidth-panelWidth-10, 10, panelWidth, screenHeight-20)
 	layoutRoot.Arrange(panelBounds, cb)
 
 	getRect := func(id string) rl.Rectangle {
@@ -79,9 +87,17 @@ func main() {
 		// DRAWING
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.GetColor(uint(rgui.GetStyle(rgui.DEFAULT, rgui.BACKGROUND_COLOR))))
+		rgui.GroupBox(getRect("paperGroup"), "Paper Settings")
 		rgui.Label(getRect("paperSizeLabel"), "paper size")
 		rgui.ComboBox(getRect("paperSize"), "A5;A4;A3", &paperSizeIdx)
+		rgui.Label(getRect("paperOrientationLabel"), "orientation")
 		rgui.ComboBox(getRect("paperOrientation"), "portrait;landscape", &paperAspect)
+
+		rgui.SetStyle(rgui.BUTTON, rgui.TEXT_ALIGNMENT, rgui.TEXT_ALIGN_CENTER)
+		if rgui.Button(getRect("paperReset"), "Reset") {
+		}
+		if rgui.Button(getRect("paperApply"), "Apply") {
+		}
 
 		// STATUS_BAR
 		mousePos := rl.GetMousePosition()
