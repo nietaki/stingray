@@ -91,3 +91,62 @@ func NewVStack(id string, children ...Widget) *VStack {
 		Id:       Id(id),
 	}
 }
+
+// # HFlex
+
+type HFlex struct {
+	children []Widget
+	Id
+}
+
+func (this HFlex) SizeHint() rl.Vector2 {
+	var ret rl.Vector2
+	for _, child := range this.children {
+		hint := child.SizeHint()
+		ret.Y = max(ret.Y, hint.Y)
+		ret.X += hint.X
+	}
+
+	ret.X += float32(len(this.children)-1) * marginSize
+	return ret
+}
+
+func (this *HFlex) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
+	availableWidth := bounds.Width - marginSize*float32(len(this.children)-1)
+
+	height := bounds.Height
+	x := bounds.X
+	y := bounds.Y
+
+	var totalWidthHint float32
+	for _, child := range this.children {
+		childHint := child.SizeHint()
+		totalWidthHint += childHint.X
+	}
+
+	for _, child := range this.children {
+		childHint := child.SizeHint()
+		childRect := rl.Rectangle{
+			X:      x,
+			Y:      y,
+			Height: height,
+			Width:  availableWidth * childHint.X / totalWidthHint,
+		}
+		child.Arrange(childRect, callback)
+		x += childRect.Width
+		x += marginSize
+	}
+
+	callback(this, bounds)
+}
+
+func (this *HFlex) Append(child Widget) {
+	this.children = append(this.children, child)
+}
+
+func NewHFlex(id string, children ...Widget) *HFlex {
+	return &HFlex{
+		children: children,
+		Id:       Id(id),
+	}
+}

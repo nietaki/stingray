@@ -43,8 +43,15 @@ func main() {
 	// panel := gui.NewPanel(rl.NewRectangle(screenWidth-panelWidth, 0, panelWidth, screenHeight))
 	layoutRoot := layout.NewVStack(
 		"root",
-		layout.NewBox("paperSize", 100, 20),
-		layout.NewBox("paperOrientation", 120, 30),
+		layout.NewHFlex("",
+			layout.Label("paperSizeLabel"),
+			layout.Control("paperSize"),
+		),
+
+		layout.NewHFlex("",
+			layout.Label("paperOrientationLabel"),
+			layout.Control("paperOrientation"),
+		),
 	)
 
 	widgetRectangles := make(map[string]rl.Rectangle)
@@ -73,6 +80,7 @@ func main() {
 		// DRAWING
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.GetColor(uint(rgui.GetStyle(rgui.DEFAULT, rgui.BACKGROUND_COLOR))))
+		rgui.Label(getRect("paperSizeLabel"), "paper size")
 		rgui.ComboBox(getRect("paperSize"), "A5;A4;A3", &paperSizeIdx)
 		rgui.ComboBox(getRect("paperOrientation"), "portrait;landscape", &paperAspect)
 
