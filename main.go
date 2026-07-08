@@ -36,6 +36,7 @@ func main() {
 		// values
 		paperSizeIdx int32 = 1
 		paperAspect  int32 = 1
+		renderScale  int32 = 10
 	)
 
 	// rl.GuiSetFont(font)
@@ -52,6 +53,11 @@ func main() {
 					layout.NewHFlex("",
 						layout.Label("paperOrientationLabel"),
 						layout.Control("paperOrientation"),
+					),
+					layout.NewHFlex("",
+						layout.Control("renderScaleLabel"),
+						layout.Control("renderScale"),
+						layout.Label("renderScaleHelper"),
 					),
 					layout.NewHFlex("",
 						layout.Label("paperReset"),
@@ -92,6 +98,9 @@ func main() {
 		rgui.ComboBox(getRect("paperSize"), "A5;A4;A3", &paperSizeIdx)
 		rgui.Label(getRect("paperOrientationLabel"), "orientation")
 		rgui.ComboBox(getRect("paperOrientation"), "portrait;landscape", &paperAspect)
+		rgui.Label(getRect("renderScaleLabel"), "render scale")
+		rgui.ValueBox(getRect("renderScale"), "", &renderScale, 1, 1000, true)
+		rgui.Label(getRect("renderScaleHelper"), "px/mm")
 
 		rgui.SetStyle(rgui.BUTTON, rgui.TEXT_ALIGNMENT, rgui.TEXT_ALIGN_CENTER)
 		if rgui.Button(getRect("paperReset"), "Reset") {
