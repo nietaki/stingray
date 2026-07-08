@@ -12,6 +12,10 @@ func Label(id string) *Box {
 	return NewBox(id, labelWidth, controlHeight)
 }
 
+func Checkbox(id string) *Box {
+	return NewBox(id, controlHeight, controlHeight)
+}
+
 func Group(id string, child Widget) *Wrapper {
 	return NewWrapper(id, child, 10, 5, 5, 5)
 }
