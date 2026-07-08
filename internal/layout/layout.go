@@ -81,10 +81,6 @@ func (this *VStack) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
 	callback(this, rect)
 }
 
-func (this *VStack) Append(child Widget) {
-	this.children = append(this.children, child)
-}
-
 func NewVStack(id string, children ...Widget) *VStack {
 	return &VStack{
 		children: children,
@@ -140,13 +136,55 @@ func (this *HFlex) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
 	callback(this, bounds)
 }
 
-func (this *HFlex) Append(child Widget) {
-	this.children = append(this.children, child)
-}
-
 func NewHFlex(id string, children ...Widget) *HFlex {
 	return &HFlex{
 		children: children,
 		Id:       Id(id),
 	}
+}
+
+// Wrapper
+
+const (
+	UP_IDX    = 0
+	RIGHT_IDX = 1
+	DOWN_IDX  = 2
+	LEFT_IDX  = 3
+)
+
+type Wrapper struct {
+	child   Widget
+	padding [4]float32
+	Id
+}
+
+func (this Wrapper) SizeHint() rl.Vector2 {
+	ret := this.child.SizeHint()
+	ret.Y += this.padding[UP_IDX] + this.padding[DOWN_IDX]
+	ret.X += this.padding[RIGHT_IDX] + this.padding[LEFT_IDX]
+	return ret
+}
+
+func (this *Wrapper) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
+	childBounds := bounds
+	childBounds.X += this.padding[LEFT_IDX]
+	childBounds.Y += this.padding[UP_IDX]
+	childBounds.Width -= this.padding[LEFT_IDX] + this.padding[RIGHT_IDX]
+	childBounds.Height -= this.padding[UP_IDX] + this.padding[DOWN_IDX]
+	this.child.Arrange(childBounds, callback)
+
+	callback(this, bounds)
+}
+
+func NewWrapper(id string, child Widget, paddings ...float32) *Wrapper {
+	ret := Wrapper{
+		child: child,
+		Id:    Id(id),
+	}
+
+	for i := range 4 {
+		ret.padding[i] = paddings[i%len(paddings)]
+	}
+
+	return &ret
 }

@@ -11,3 +11,7 @@ func Control(id string) *Box {
 func Label(id string) *Box {
 	return NewBox(id, labelWidth, controlHeight)
 }
+
+func Group(id string, child Widget) *Wrapper {
+	return NewWrapper(id, child, 10, 5, 5, 5)
+}

@@ -41,18 +41,17 @@ func main() {
 	// rl.GuiSetFont(font)
 
 	// panel := gui.NewPanel(rl.NewRectangle(screenWidth-panelWidth, 0, panelWidth, screenHeight))
-	layoutRoot := layout.NewVStack(
-		"root",
-		layout.NewHFlex("",
-			layout.Label("paperSizeLabel"),
-			layout.Control("paperSize"),
-		),
-
-		layout.NewHFlex("",
-			layout.Label("paperOrientationLabel"),
-			layout.Control("paperOrientation"),
-		),
-	)
+	layoutRoot := layout.Group("rootWrapper",
+		layout.NewVStack("root",
+			layout.NewHFlex("",
+				layout.Label("paperSizeLabel"),
+				layout.Control("paperSize"),
+			),
+			layout.NewHFlex("",
+				layout.Label("paperOrientationLabel"),
+				layout.Control("paperOrientation"),
+			),
+		))
 
 	widgetRectangles := make(map[string]rl.Rectangle)
 	var cb layout.WidgetCallback
