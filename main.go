@@ -31,7 +31,7 @@ var (
 	renderScale  int32 = 10
 
 	// paper
-	paperCam rl.Camera2D
+	paperCam rl.Camera2D = rl.NewCamera2D(rl.Vector2{}, rl.Vector2{}, 0.0, 1.0)
 
 	paperPixelDimensions [2]int32
 )
@@ -44,7 +44,16 @@ func main() {
 	rl.InitWindow(screenWidth, screenHeight, "stingray - control layout experiments")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
-	// paperTexture := rl.LoadRenderTexture(screenW/2, screenH)
+
+	// paperImage := rl.GenImagePerlinNoise(int(paperPixelDimensions[0]), int(paperPixelDimensions[1]), 0, 0, 1.0)
+	paperImage := rl.LoadImage("assets/images/lisek.png")
+	if !rl.IsImageValid(paperImage) {
+		panic("image invalid")
+	}
+	paperTexture := rl.LoadTextureFromImage(paperImage)
+	if !rl.IsTextureValid(paperTexture) {
+		panic("texture invalid")
+	}
 
 	// rl.GuiSetFont(font)
 
@@ -111,6 +120,16 @@ func main() {
 		// DRAWING
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.GetColor(uint(rgui.GetStyle(rgui.DEFAULT, rgui.BACKGROUND_COLOR))))
+		// rl.BeginCamera2D(paperCam)
+		paperCam.Target = rl.GetMousePosition()
+		rl.BeginMode2D(paperCam)
+		// rl.DrawTextureEx(paperTexture, rl.Vector2{X: 200, Y: 200}, 0.0, 1.0, rl.White)
+		sourceRect := rl.NewRectangle(100, 200, 300, 400)
+		positionVec := rl.Vector2{X: 200, Y: 200}
+		rl.DrawTextureRec(paperTexture, sourceRect, positionVec, rl.White)
+		rl.EndMode2D()
+
+		// gui
 		rgui.GroupBox(getRect("paperGroup"), "Paper Settings")
 		rgui.Label(getRect("paperSizeLabel"), "paper size")
 		rgui.ComboBox(getRect("paperSize"), "A0;A1;A2;A3;A4;A5", &paperSizeIdx)
