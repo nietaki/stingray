@@ -38,6 +38,11 @@ var (
 
 func main() {
 
+	// TODO: don't duplicate this
+	dims := paper.APaperSizeInPixels(paperSizeIdx, landscape, renderScale)
+	paperPixelDimensions[0] = dims[0]
+	paperPixelDimensions[1] = dims[1]
+
 	// rl.SetConfigFlags(rl.FlagWindowUndecorated | rl.FlagWindowMousePassthrough)
 	rl.SetConfigFlags(rl.FlagWindowAlwaysRun)
 
@@ -45,11 +50,11 @@ func main() {
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
 
-	// paperImage := rl.GenImagePerlinNoise(int(paperPixelDimensions[0]), int(paperPixelDimensions[1]), 0, 0, 1.0)
-	paperImage := rl.LoadImage("assets/images/lisek.png")
-	if !rl.IsImageValid(paperImage) {
-		panic("image invalid")
-	}
+	paperImage := rl.GenImagePerlinNoise(int(paperPixelDimensions[0]), int(paperPixelDimensions[1]), 0, 0, 10.0)
+	// paperImage := rl.LoadImage("assets/images/lisek.png")
+	// if !rl.IsImageValid(paperImage) {
+	// 	panic("image invalid")
+	// }
 	paperTexture := rl.LoadTextureFromImage(paperImage)
 	if !rl.IsTextureValid(paperTexture) {
 		panic("texture invalid")
@@ -60,29 +65,31 @@ func main() {
 	// panel := gui.NewPanel(rl.NewRectangle(screenWidth-panelWidth, 0, panelWidth, screenHeight))
 	layoutRoot :=
 		layout.NewVStack("root",
-			layout.Group("paperGroup",
-				layout.NewVStack("paperStack",
-					layout.NewHFlex("",
-						layout.Label("paperSizeLabel"),
-						layout.Control("paperSize"),
-					),
-					layout.NewHFlex("",
-						layout.Checkbox("paperOrientation"),
-						layout.Control("paperOrientationLabel"),
-					),
-					layout.NewHFlex("",
-						layout.Control("renderScaleLabel"),
-						layout.Control("renderScale"),
-						layout.Label("renderScaleHelper"),
-					),
-					layout.NewHFlex("",
-						layout.Control("paperPixelsLabel"),
-						layout.Label("paperPixelsWidth"),
-						layout.Label("paperPixelsHeight"),
-					),
-					layout.NewHFlex("",
-						layout.Label("paperReset"),
-						layout.Label("paperApply"),
+			layout.Group("padding",
+				layout.Group("paperGroup",
+					layout.NewVStack("paperStack",
+						layout.NewHFlex("",
+							layout.Label("paperSizeLabel"),
+							layout.Control("paperSize"),
+						),
+						layout.NewHFlex("",
+							layout.Checkbox("paperOrientation"),
+							layout.Control("paperOrientationLabel"),
+						),
+						layout.NewHFlex("",
+							layout.Control("renderScaleLabel"),
+							layout.Control("renderScale"),
+							layout.Label("renderScaleHelper"),
+						),
+						layout.NewHFlex("",
+							layout.Control("paperPixelsLabel"),
+							layout.Label("paperPixelsWidth"),
+							layout.Label("paperPixelsHeight"),
+						),
+						layout.NewHFlex("",
+							layout.Label("paperReset"),
+							layout.Label("paperApply"),
+						),
 					),
 				),
 			),
@@ -107,9 +114,21 @@ func main() {
 	for !exitWindow { // Detect window close button or ESC key
 		// logic update
 
-		dims := paper.APaperSizeInPixels(paperSizeIdx, landscape, renderScale)
-		paperPixelDimensions[0] = dims[0]
-		paperPixelDimensions[1] = dims[1]
+		// dims := paper.APaperSizeInPixels(paperSizeIdx, landscape, renderScale)
+		// paperPixelDimensions[0] = dims[0]
+		// paperPixelDimensions[1] = dims[1]
+
+		paperCam.Zoom += float32(rl.GetMouseWheelMove()) * 0.05
+
+		if paperCam.Zoom > 3.0 {
+			paperCam.Zoom = 3.0
+		} else if paperCam.Zoom < 0.1 {
+			paperCam.Zoom = 0.1
+		}
+
+		if rl.IsCursorOnScreen() {
+			paperCam.Target = rl.GetMousePosition()
+		}
 
 		// Update
 		exitWindow = rl.WindowShouldClose()
@@ -120,16 +139,12 @@ func main() {
 		// DRAWING
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.GetColor(uint(rgui.GetStyle(rgui.DEFAULT, rgui.BACKGROUND_COLOR))))
-		// rl.BeginCamera2D(paperCam)
-		paperCam.Target = rl.GetMousePosition()
 		rl.BeginMode2D(paperCam)
-		// rl.DrawTextureEx(paperTexture, rl.Vector2{X: 200, Y: 200}, 0.0, 1.0, rl.White)
-		sourceRect := rl.NewRectangle(100, 200, 300, 400)
-		positionVec := rl.Vector2{X: 200, Y: 200}
-		rl.DrawTextureRec(paperTexture, sourceRect, positionVec, rl.White)
+		rl.DrawTexture(paperTexture, 20, 30, rl.White)
 		rl.EndMode2D()
 
 		// gui
+		rl.DrawRectangleRec(getRect("root"), rl.RayWhite)
 		rgui.GroupBox(getRect("paperGroup"), "Paper Settings")
 		rgui.Label(getRect("paperSizeLabel"), "paper size")
 		rgui.ComboBox(getRect("paperSize"), "A0;A1;A2;A3;A4;A5", &paperSizeIdx)
@@ -151,7 +166,7 @@ func main() {
 
 		// STATUS_BAR
 		mousePos := rl.GetMousePosition()
-		mousePosText := fmt.Sprintf("Mouse Position: (%.0f, %.0f)", mousePos.X, mousePos.Y)
+		mousePosText := fmt.Sprintf("Mouse Position: (%.0f, %.0f), camera zoom: %.3f", mousePos.X, mousePos.Y, paperCam.Zoom)
 		rgui.StatusBar(rl.NewRectangle(0, float32(rl.GetScreenHeight())-20, float32(rl.GetScreenWidth()), 20), mousePosText)
 
 		rl.EndDrawing()
