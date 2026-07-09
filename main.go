@@ -31,7 +31,7 @@ var (
 	renderScale  int32 = 10
 
 	// paper
-	paperCam rl.Camera2D = rl.NewCamera2D(rl.Vector2{}, rl.Vector2{}, 0.0, 1.0)
+	paperCam rl.Camera2D
 
 	paperPixelDimensions [2]int32
 )
@@ -42,6 +42,10 @@ func main() {
 	dims := paper.APaperSizeInPixels(paperSizeIdx, landscape, renderScale)
 	paperPixelDimensions[0] = dims[0]
 	paperPixelDimensions[1] = dims[1]
+
+	startingOffset := rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
+	startingTarget := rl.Vector2{X: float32(paperPixelDimensions[0]) / 2, Y: float32(paperPixelDimensions[1]) / 2}
+	paperCam = rl.NewCamera2D(startingOffset, startingTarget, 0.0, 1.0)
 
 	// rl.SetConfigFlags(rl.FlagWindowUndecorated | rl.FlagWindowMousePassthrough)
 	rl.SetConfigFlags(rl.FlagWindowAlwaysRun)
@@ -118,16 +122,13 @@ func main() {
 		// paperPixelDimensions[0] = dims[0]
 		// paperPixelDimensions[1] = dims[1]
 
-		paperCam.Zoom += float32(rl.GetMouseWheelMove()) * 0.05
-
-		if paperCam.Zoom > 3.0 {
-			paperCam.Zoom = 3.0
-		} else if paperCam.Zoom < 0.1 {
-			paperCam.Zoom = 0.1
-		}
-
-		if rl.IsCursorOnScreen() {
-			paperCam.Target = rl.GetMousePosition()
+		wheelDiff := rl.GetMouseWheelMove()
+		if wheelDiff != 0 {
+			newTarget := rl.GetScreenToWorld2D(rl.GetMousePosition(), paperCam)
+			paperCam.Target = newTarget
+			paperCam.Zoom += float32(rl.GetMouseWheelMove()) * 0.05
+			paperCam.Zoom = rl.Clamp(paperCam.Zoom, 0.1, 3.0)
+			rl.SetMousePosition(screenWidth/2, screenHeight/2)
 		}
 
 		// Update
@@ -140,7 +141,7 @@ func main() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.GetColor(uint(rgui.GetStyle(rgui.DEFAULT, rgui.BACKGROUND_COLOR))))
 		rl.BeginMode2D(paperCam)
-		rl.DrawTexture(paperTexture, 20, 30, rl.White)
+		rl.DrawTexture(paperTexture, 0, 0, rl.White)
 		rl.EndMode2D()
 
 		// gui
