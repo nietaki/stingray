@@ -4,7 +4,11 @@ github.com/gen2brain/raylib-go/raygui v0.0.0-20260619180708-8f9e96aca992 h1:PyGN
 github.com/gen2brain/raylib-go/raygui v0.0.0-20260619180708-8f9e96aca992/go.mod h1:9WxQA2oI5b0q/B6dX9/WOaAdMN+IxsSeaB6JnJ2HY3k=
 github.com/gen2brain/raylib-go/raylib v0.60.0 h1:KsP7W3EMkmb9zztivdgbh1bXR78pEuqP6jeUR8GCbEA=
 github.com/gen2brain/raylib-go/raylib v0.60.0/go.mod h1:puAMU7Zcx6VJ6pcZSSs3gGFPyFvJuTwQlfm4KzeoXy8=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/jupiterrider/ffi v0.7.0 h1:RKsl6Ascal+3kyAqR5Qcbp83LceQMLc1VZbPfHWoNzs=
 github.com/jupiterrider/ffi v0.7.0/go.mod h1:9dauhpOfNqrqk28fxuu0kkdeFtT9Qr4vbfigiuIXN7c=
+github.com/mvrahden/go-test v1.24.0 h1:UwbspxzWJ/5AC/l2W6Eo4yA2DrGpCq73gOL6cvvMXrE=
+github.com/mvrahden/go-test v1.24.0/go.mod h1:LPrt/i1WkKwP9SeLo89VwuMCC/ZG00Hv3lnmJXTDP8Q=
 golang.org/x/exp v0.0.0-20260611194520-c48552f49976 h1:X8Hz2ImujgbmetVuW+w2YkyZChE3cBpZi2P158rTG9M=
 golang.org/x/exp v0.0.0-20260611194520-c48552f49976/go.mod h1:vnf4pv9iKZXY58sQE1L86zmNWJ4159e1RkcWiLCkeEY=
