@@ -27,44 +27,54 @@ var (
 	exitWindow bool = false
 
 	// paper
-	paperCam rl.Camera2D
+	paperCam     rl.Camera2D
+	paperTexture rl.Texture2D
 
 	paperPixelDimensions paper.PaperDimensions
 	paperConfig          *state.StateManager[paper.Config]
 )
 
-func main() {
-	paperConfig = state.NewStateManager[paper.Config]()
-	paperConfig.LoadOrDefault(paper.DefaultConfig())
-
+func applyPaperConfig() {
+	oldZoom := rl.Clamp(paperCam.Zoom, 0.1, 4.0)
 	paperPixelDimensions = paperConfig.Data.PixelDims()
-
 	startingOffset := rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
 	startingTarget := rl.Vector2{
 		X: float32(paperPixelDimensions[0]) / 2,
 		Y: float32(paperPixelDimensions[1]) / 2}
-	paperCam = rl.NewCamera2D(startingOffset, startingTarget, 0.0, 1.0)
+	paperCam = rl.NewCamera2D(startingOffset, startingTarget, 0.0, oldZoom)
 
 	// rl.SetConfigFlags(rl.FlagWindowUndecorated | rl.FlagWindowMousePassthrough)
+
+	/* canvas generation and populating TODO: decouple */
+
+	paperImage := rl.GenImagePerlinNoise(int(paperPixelDimensions[0]), int(paperPixelDimensions[1]), 0, 0, float32(paperConfig.Data.RenderScale))
+	// paperImage := rl.LoadImage("assets/images/lisek.png")
+	// if !rl.IsImageValid(paperImage) {
+	// 	panic("image invalid")
+	// }
+	paperTexture = rl.LoadTextureFromImage(paperImage)
+	if !rl.IsTextureValid(paperTexture) {
+		panic("texture invalid")
+	}
+}
+
+func main() {
+	/* window setup */
 	rl.SetConfigFlags(rl.FlagWindowAlwaysRun)
 
 	rl.InitWindow(screenWidth, screenHeight, "stingray - control layout experiments")
 	rl.SetExitKey(0)
 	rl.SetTargetFPS(60)
 
-	paperImage := rl.GenImagePerlinNoise(int(paperPixelDimensions[0]), int(paperPixelDimensions[1]), 0, 0, 10.0)
-	// paperImage := rl.LoadImage("assets/images/lisek.png")
-	// if !rl.IsImageValid(paperImage) {
-	// 	panic("image invalid")
-	// }
-	paperTexture := rl.LoadTextureFromImage(paperImage)
-	if !rl.IsTextureValid(paperTexture) {
-		panic("texture invalid")
-	}
-
 	// rl.GuiSetFont(font)
 
-	// panel := gui.NewPanel(rl.NewRectangle(screenWidth-panelWidth, 0, panelWidth, screenHeight))
+	/* initial config setup */
+	paperConfig = state.NewStateManager[paper.Config]()
+	paperConfig.LoadOrDefault(paper.DefaultConfig())
+
+	paperCam.Zoom = 1.0
+	applyPaperConfig()
+
 	layoutRoot :=
 		layout.NewVStack("root",
 			layout.Group("padding",
@@ -116,16 +126,12 @@ func main() {
 	for !exitWindow { // Detect window close button or ESC key
 		// logic update
 
-		// dims := paper.APaperSizeInPixels(paperSizeIdx, landscape, renderScale)
-		// paperPixelDimensions[0] = dims[0]
-		// paperPixelDimensions[1] = dims[1]
-
 		wheelDiff := rl.GetMouseWheelMove()
 		if wheelDiff != 0 {
 			newTarget := rl.GetScreenToWorld2D(rl.GetMousePosition(), paperCam)
 			paperCam.Target = newTarget
 			paperCam.Zoom += float32(rl.GetMouseWheelMove()) * 0.05
-			paperCam.Zoom = rl.Clamp(paperCam.Zoom, 0.1, 3.0)
+			paperCam.Zoom = rl.Clamp(paperCam.Zoom, 0.1, 4.0)
 			rl.SetMousePosition(screenWidth/2, screenHeight/2)
 		}
 
@@ -162,6 +168,7 @@ func main() {
 			paperConfig.Data = paper.DefaultConfig()
 		}
 		if rgui.Button(getRect("paperApply"), "Apply") {
+			applyPaperConfig()
 		}
 		if rgui.Button(getRect("paperSave"), "Save") {
 			err := paperConfig.Save()
