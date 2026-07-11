@@ -29,20 +29,20 @@ var (
 	// paper
 	paperCam rl.Camera2D
 
-	paperPixelDimensions [2]int32
+	paperPixelDimensions paper.PaperDimensions
+	paperConfig          *state.StateManager[paper.Config]
 )
 
 func main() {
-	paperConfig := state.NewStateManager[paper.Config]()
+	paperConfig = state.NewStateManager[paper.Config]()
 	paperConfig.LoadOrDefault(paper.DefaultConfig())
 
-	// TODO: don't duplicate this
-	dims := paper.APaperSizeInPixels(paperConfig.Data.SizeIdx, paperConfig.Data.Landscape, paperConfig.Data.RenderScale)
-	paperPixelDimensions[0] = dims[0]
-	paperPixelDimensions[1] = dims[1]
+	paperPixelDimensions = paperConfig.Data.PixelDims()
 
 	startingOffset := rl.Vector2{X: screenWidth / 2, Y: screenHeight / 2}
-	startingTarget := rl.Vector2{X: float32(paperPixelDimensions[0]) / 2, Y: float32(paperPixelDimensions[1]) / 2}
+	startingTarget := rl.Vector2{
+		X: float32(paperPixelDimensions[0]) / 2,
+		Y: float32(paperPixelDimensions[1]) / 2}
 	paperCam = rl.NewCamera2D(startingOffset, startingTarget, 0.0, 1.0)
 
 	// rl.SetConfigFlags(rl.FlagWindowUndecorated | rl.FlagWindowMousePassthrough)
@@ -91,6 +91,7 @@ func main() {
 						layout.NewHFlex("",
 							layout.Label("paperReset"),
 							layout.Label("paperApply"),
+							layout.Label("paperSave"),
 						),
 					),
 				),
@@ -160,7 +161,9 @@ func main() {
 		if rgui.Button(getRect("paperReset"), "Reset") {
 			paperConfig.Data = paper.DefaultConfig()
 		}
-		if rgui.Button(getRect("paperApply"), "Save") {
+		if rgui.Button(getRect("paperApply"), "Apply") {
+		}
+		if rgui.Button(getRect("paperSave"), "Save") {
 			err := paperConfig.Save()
 			if err != nil {
 				panic("could not save paper config")

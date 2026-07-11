@@ -13,3 +13,7 @@ func DefaultConfig() Config {
 		RenderScale: 10,
 	}
 }
+
+func (conf Config) PixelDims() PaperDimensions {
+	return APaperSizeInPixels(conf.SizeIdx, conf.Landscape, conf.RenderScale)
+}
