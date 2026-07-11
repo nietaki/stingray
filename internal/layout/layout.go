@@ -22,12 +22,12 @@ type Box struct {
 	Id
 }
 
-func (this Box) SizeHint() rl.Vector2 {
-	return this.sizeHint
+func (widget Box) SizeHint() rl.Vector2 {
+	return widget.sizeHint
 }
 
-func (this *Box) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
-	callback(this, bounds)
+func (widget *Box) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
+	callback(widget, bounds)
 }
 
 func NewBox(id string, width, height float32) *Box {
@@ -44,25 +44,25 @@ type VStack struct {
 	Id
 }
 
-func (this VStack) SizeHint() rl.Vector2 {
+func (widget VStack) SizeHint() rl.Vector2 {
 	var ret rl.Vector2
-	for _, child := range this.children {
+	for _, child := range widget.children {
 		hint := child.SizeHint()
 		ret.X = max(ret.X, hint.X)
 		ret.Y += hint.Y
 	}
 
-	ret.Y += float32(len(this.children)-1) * marginSize
+	ret.Y += float32(len(widget.children)-1) * marginSize
 	return ret
 }
 
-func (this *VStack) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
+func (widget *VStack) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
 	width := bounds.Width
 	x := bounds.X
 	y := bounds.Y
 	lastY := y
 
-	for _, child := range this.children {
+	for _, child := range widget.children {
 		childHint := child.SizeHint()
 		childRect := rl.Rectangle{
 			X:      x,
@@ -78,7 +78,7 @@ func (this *VStack) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
 
 	rect := bounds
 	rect.Height = lastY - bounds.Y
-	callback(this, rect)
+	callback(widget, rect)
 }
 
 func NewVStack(id string, children ...Widget) *VStack {
@@ -95,32 +95,32 @@ type HFlex struct {
 	Id
 }
 
-func (this HFlex) SizeHint() rl.Vector2 {
+func (widget HFlex) SizeHint() rl.Vector2 {
 	var ret rl.Vector2
-	for _, child := range this.children {
+	for _, child := range widget.children {
 		hint := child.SizeHint()
 		ret.Y = max(ret.Y, hint.Y)
 		ret.X += hint.X
 	}
 
-	ret.X += float32(len(this.children)-1) * marginSize
+	ret.X += float32(len(widget.children)-1) * marginSize
 	return ret
 }
 
-func (this *HFlex) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
-	availableWidth := bounds.Width - marginSize*float32(len(this.children)-1)
+func (widget *HFlex) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
+	availableWidth := bounds.Width - marginSize*float32(len(widget.children)-1)
 
 	height := bounds.Height
 	x := bounds.X
 	y := bounds.Y
 
 	var totalWidthHint float32
-	for _, child := range this.children {
+	for _, child := range widget.children {
 		childHint := child.SizeHint()
 		totalWidthHint += childHint.X
 	}
 
-	for _, child := range this.children {
+	for _, child := range widget.children {
 		childHint := child.SizeHint()
 		childRect := rl.Rectangle{
 			X:      x,
@@ -133,7 +133,7 @@ func (this *HFlex) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
 		x += marginSize
 	}
 
-	callback(this, bounds)
+	callback(widget, bounds)
 }
 
 func NewHFlex(id string, children ...Widget) *HFlex {
@@ -158,22 +158,22 @@ type Wrapper struct {
 	Id
 }
 
-func (this Wrapper) SizeHint() rl.Vector2 {
-	ret := this.child.SizeHint()
-	ret.Y += this.padding[UP_IDX] + this.padding[DOWN_IDX]
-	ret.X += this.padding[RIGHT_IDX] + this.padding[LEFT_IDX]
+func (widget Wrapper) SizeHint() rl.Vector2 {
+	ret := widget.child.SizeHint()
+	ret.Y += widget.padding[UP_IDX] + widget.padding[DOWN_IDX]
+	ret.X += widget.padding[RIGHT_IDX] + widget.padding[LEFT_IDX]
 	return ret
 }
 
-func (this *Wrapper) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
+func (widget *Wrapper) Arrange(bounds rl.Rectangle, callback WidgetCallback) {
 	childBounds := bounds
-	childBounds.X += this.padding[LEFT_IDX]
-	childBounds.Y += this.padding[UP_IDX]
-	childBounds.Width -= this.padding[LEFT_IDX] + this.padding[RIGHT_IDX]
-	childBounds.Height -= this.padding[UP_IDX] + this.padding[DOWN_IDX]
-	this.child.Arrange(childBounds, callback)
+	childBounds.X += widget.padding[LEFT_IDX]
+	childBounds.Y += widget.padding[UP_IDX]
+	childBounds.Width -= widget.padding[LEFT_IDX] + widget.padding[RIGHT_IDX]
+	childBounds.Height -= widget.padding[UP_IDX] + widget.padding[DOWN_IDX]
+	widget.child.Arrange(childBounds, callback)
 
-	callback(this, bounds)
+	callback(widget, bounds)
 }
 
 func NewWrapper(id string, child Widget, paddings ...float32) *Wrapper {

@@ -100,8 +100,7 @@ func main() {
 		)
 
 	widgetRectangles := make(map[string]rl.Rectangle)
-	var cb layout.WidgetCallback
-	cb = func(widget layout.Widget, bounds rl.Rectangle) {
+	var cb layout.WidgetCallback = func(widget layout.Widget, bounds rl.Rectangle) {
 		widgetRectangles[widget.GetId()] = bounds
 	}
 	panelBounds := rl.NewRectangle(screenWidth-panelWidth-10, 10, panelWidth, screenHeight-20)
