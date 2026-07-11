@@ -6,6 +6,7 @@ import (
 	"hash/maphash"
 	"os"
 	"reflect"
+	"strings"
 )
 
 type StateManager[T comparable] struct {
@@ -74,7 +75,11 @@ func (this *StateManager[T]) GetName() string {
 	if this.name != "" {
 		return this.name
 	}
-	return reflect.TypeFor[T]().Name()
+	rt := reflect.TypeFor[T]()
+	packagePath := rt.PkgPath()
+	lastPackageBit := packagePath[strings.LastIndex(packagePath, "/")+1:]
+	structName := rt.Name()
+	return fmt.Sprintf("%s-%s", lastPackageBit, structName)
 }
 
 func (this *StateManager[T]) dataPath() string {

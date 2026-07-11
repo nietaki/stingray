@@ -33,7 +33,7 @@ func (s *StateManagerTestSuite) BeforeEach(t *gotest.T) {
 }
 
 func (s *StateManagerTestSuite) AfterEach(t *gotest.T) {
-	os.Remove("state/SampleState.json")
+	os.Remove("state/state_test-SampleState.json")
 	os.Remove(fmt.Sprintf("state/%s.json", s.name))
 }
 
@@ -50,7 +50,7 @@ func (s *StateManagerTestSuite) TestHashing(t *gotest.T) {
 func (s *StateManagerTestSuite) TestPersistance(t *gotest.T) {
 	t.It("can figure out its name", func(it *gotest.T) {
 		sm := state.NewStateManager[SampleState]()
-		gotest.Equal(it, "SampleState", sm.GetName())
+		gotest.Equal(it, "state_test-SampleState", sm.GetName())
 		sm.SetName(s.name)
 		gotest.Equal(it, s.name, sm.GetName())
 	})

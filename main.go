@@ -8,6 +8,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/nietaki/stingray/internal/layout"
 	"github.com/nietaki/stingray/internal/paper"
+	"github.com/nietaki/stingray/internal/state"
 )
 
 // //go:embed assets/shaders/raymarching.fs
@@ -25,11 +26,6 @@ var (
 
 	exitWindow bool = false
 
-	// values
-	paperSizeIdx int32 = 5
-	landscape    bool  = false
-	renderScale  int32 = 10
-
 	// paper
 	paperCam rl.Camera2D
 
@@ -37,9 +33,11 @@ var (
 )
 
 func main() {
+	paperConfig := state.NewStateManager[paper.Config]()
+	paperConfig.LoadOrDefault(paper.DefaultConfig())
 
 	// TODO: don't duplicate this
-	dims := paper.APaperSizeInPixels(paperSizeIdx, landscape, renderScale)
+	dims := paper.APaperSizeInPixels(paperConfig.Data.SizeIdx, paperConfig.Data.Landscape, paperConfig.Data.RenderScale)
 	paperPixelDimensions[0] = dims[0]
 	paperPixelDimensions[1] = dims[1]
 
@@ -147,11 +145,11 @@ func main() {
 		rl.DrawRectangleRec(getRect("root"), rl.RayWhite)
 		rgui.GroupBox(getRect("paperGroup"), "Paper Settings")
 		rgui.Label(getRect("paperSizeLabel"), "paper size")
-		rgui.ComboBox(getRect("paperSize"), "A0;A1;A2;A3;A4;A5", &paperSizeIdx)
-		rgui.CheckBox(getRect("paperOrientation"), "", &landscape)
+		rgui.ComboBox(getRect("paperSize"), "A0;A1;A2;A3;A4;A5", &paperConfig.Data.SizeIdx)
+		rgui.CheckBox(getRect("paperOrientation"), "", &paperConfig.Data.Landscape)
 		rgui.Label(getRect("paperOrientationLabel"), "landscape?")
 		rgui.Label(getRect("renderScaleLabel"), "render scale")
-		rgui.ValueBox(getRect("renderScale"), "", &renderScale, 1, 1000, true)
+		rgui.ValueBox(getRect("renderScale"), "", &paperConfig.Data.RenderScale, 1, 30, true)
 		rgui.Label(getRect("renderScaleHelper"), "px/mm")
 
 		rgui.Label(getRect("paperPixelsLabel"), "paper pixels w/h")
@@ -160,8 +158,13 @@ func main() {
 
 		rgui.SetStyle(rgui.BUTTON, rgui.TEXT_ALIGNMENT, rgui.TEXT_ALIGN_CENTER)
 		if rgui.Button(getRect("paperReset"), "Reset") {
+			paperConfig.Data = paper.DefaultConfig()
 		}
-		if rgui.Button(getRect("paperApply"), "Apply") {
+		if rgui.Button(getRect("paperApply"), "Save") {
+			err := paperConfig.Save()
+			if err != nil {
+				panic("could not save paper config")
+			}
 		}
 
 		// STATUS_BAR
